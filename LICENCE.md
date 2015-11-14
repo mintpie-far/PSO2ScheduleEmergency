@@ -1,13 +1,18 @@
+Html Agility Pack
 このアプリケーションはHtml Agility Packを使用しています。
 https://htmlagilitypack.codeplex.com
 
+PSO2
 以下のリソースを取得しています。
 
 （C）SEGA
 『PHANTASY STAR ONLINE 2』公式サイト
 http://pso2.jp/
 
-このアプリケーションには以下のライセンスを適用
+以下のガイドラインも守ってください
+http://pso2.jp/players/support/rule/
+
+このアプリケーションには以下のライセンスを適用します
 
 The MIT License (MIT)
 
