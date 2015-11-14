@@ -7,8 +7,8 @@
     <ProjectGuid>{5F0245B5-AA49-4494-BCFB-BDB24D371BB9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PSO2.Schedule.Emergency</RootNamespace>
-    <AssemblyName>PSO2.Schedule.Emergency</AssemblyName>
+    <RootNamespace>Pso2.Schedule.Emergency</RootNamespace>
+    <AssemblyName>Pso2.Schedule.Emergency</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -44,9 +44,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseMessage.cs" />
     <Compile Include="EmergencyDataFormat.cs" />
     <Compile Include="EmergencyDataFormatCollection.cs" />
     <Compile Include="EmergencyEventType.cs" />
+    <Compile Include="IError.cs" />
     <Compile Include="ParsePso2WebData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

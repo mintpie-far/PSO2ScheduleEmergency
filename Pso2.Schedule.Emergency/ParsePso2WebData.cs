@@ -22,29 +22,39 @@ namespace Pso2.Schedule.Emergency
 
         public EmergencyDataFormatCollection ImportFromWebSite() {
             EmergencyDataFormatCollection result = new EmergencyDataFormatCollection();
-            string pso2WebSiteData = this.GetPSO2WebSiteData();
-
-            HtmlDocument htmlDocument = new HtmlDocument();
-            htmlDocument.LoadHtml(pso2WebSiteData.Replace("\r\n", ""));
-
-            HtmlNodeCollection mainData = htmlDocument.DocumentNode.SelectNodes("//div[@class='tableWrap']");
-            foreach (HtmlNode informationNode in mainData) {
-                HtmlNode dayNode = informationNode.PreviousSibling;
-                EmergencyDataFormat emergencyDataFormat = new EmergencyDataFormat();
-                if (dayNode == null) {
-
-                    continue;
+            try {
+                BaseMessage pso2WebSiteData = this.GetPSO2WebSiteData();
+                if (pso2WebSiteData.Status != ResponceStatus.OK) {
+                    result.SetResponceData(pso2WebSiteData);
+                    return result;
                 }
-                DateTime? day = this.GetDay(dayNode);
+                HtmlDocument htmlDocument = new HtmlDocument();
+                htmlDocument.LoadHtml(pso2WebSiteData.GetData.Replace("\r\n", ""));
 
-                if (day == null) {
-                    //日情報なし
-                    continue;
+                HtmlNodeCollection mainData = htmlDocument.DocumentNode.SelectNodes("//div[@class='tableWrap']");
+                if (mainData == null || mainData.Nodes().Count() == 0) {
+                    result.SetResponceData(null, ResponceStatus.FormatChanged, new Exception(), "FormatChanged");
+                    return result;
                 }
-                emergencyDataFormat.SetDay(day.Value);
-                this.SetInformation(informationNode, emergencyDataFormat, result);
+                foreach (HtmlNode informationNode in mainData) {
+                    HtmlNode dayNode = informationNode.PreviousSibling;
+                    EmergencyDataFormat emergencyDataFormat = new EmergencyDataFormat();
+                    if (dayNode == null) {
 
+                        continue;
+                    }
+                    DateTime? day = this.GetDay(dayNode);
 
+                    if (day == null) {
+                        //日情報なし
+                        continue;
+                    }
+                    emergencyDataFormat.SetDay(day.Value);
+                    this.SetInformation(informationNode, emergencyDataFormat, result);
+                    
+                }
+            } catch (Exception ex) {
+                result.SetResponceData(null, ResponceStatus.UnknownError, ex, "Unknown Error");
             }
             return result;
         }
@@ -52,15 +62,21 @@ namespace Pso2.Schedule.Emergency
         /// pso2のWebサイトからDLする
         /// </summary>
         /// <returns></returns>
-		internal string GetPSO2WebSiteData() {
-            WebRequest webRequest = WebRequest.CreateHttp(ParsePso2WebData.PSO2ScheduleWebSiteAddress);
-            WebResponse response = webRequest.GetResponse();
-            string text;
-            using (StreamReader streamReader = new StreamReader(response.GetResponseStream())) {
-                text = streamReader.ReadToEnd();
-                this.HTMLData = text;
+		internal BaseMessage GetPSO2WebSiteData() {
+            BaseMessage result = new BaseMessage();
+            try {
+                WebRequest webRequest = WebRequest.CreateHttp(ParsePso2WebData.PSO2ScheduleWebSiteAddress);
+                WebResponse response = webRequest.GetResponse();
+                string text;
+                using (StreamReader streamReader = new StreamReader(response.GetResponseStream())) {
+                    text = streamReader.ReadToEnd();
+                    this.HTMLData = text;
+                }
+                result.SetResponceData(text);
+            } catch (WebException ex) {
+                result.SetResponceData(null, ResponceStatus.NetworkError, ex, "GetPSO2WebSiteData Error");
             }
-            return text;
+            return result;
         }
         /// <summary>
         /// ResultDataに結果を格納する
@@ -68,7 +84,9 @@ namespace Pso2.Schedule.Emergency
         /// <param name="InformationNode"></param>
         /// <param name="BaseEmergencyData"></param>
         /// <param name="ResultData"></param>
-		internal void SetInformation(HtmlNode InformationNode, EmergencyDataFormat BaseEmergencyData, EmergencyDataFormatCollection ResultData) {
+		internal BaseMessage SetInformation(HtmlNode InformationNode, EmergencyDataFormat BaseEmergencyData, EmergencyDataFormatCollection ResultData) {
+            BaseMessage result = new BaseMessage();
+            
             foreach (HtmlNode current in InformationNode.ChildNodes) {
                 for (HtmlNode htmlNode = current.FirstChild; htmlNode != null; htmlNode = htmlNode.NextSibling) {
                     //ヘッダーは無視
@@ -80,6 +98,7 @@ namespace Pso2.Schedule.Emergency
                     for (int columnCount = 0; columnCount < 3; columnCount++) {
                         if (htmlNode.ChildNodes.Count != 3) {
                             //unknown format
+                            result.SetResponceData(null, ResponceStatus.FormatChanged, new Exception(), "SetInfomation:TableNode Not 3");
                             continue;
                         }
                         switch (columnCount) {
@@ -107,6 +126,7 @@ namespace Pso2.Schedule.Emergency
                     ResultData.Add(emergencyData);
                 }
             }
+            return result;
         }
         /// <summary>
         /// 緊急の時間

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Pso2.Schedule.Emergency
 {
-    public class EmergencyDataFormatCollection : IEnumerable<EmergencyDataFormat>, IEnumerable {
+    public class EmergencyDataFormatCollection :BaseMessage, IEnumerable<EmergencyDataFormat>, IEnumerable {
         internal List<EmergencyDataFormat> emerygencyDataList {
             get;
             set;
